@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Show users{% endblock %}
+
+{% block body %}
+
+    <form action="{{ path('app_user') }}" method="GET">
+        <input placeholder="Поиск" name="soughtAfter">
+        <input type="submit" value="Найти">
+    </form>
+
+    <br>
+
+    <table class="table_users">
+        <thead>
+            <tr>
+                <th>Имя</th>
+                <th>Фамилия</th>
+                <th>Возраст</th>
+                <th>Статус</th>
+                <th>Почта</th>
+                <th>Телеграмм</th>
+                <th>Адрес</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <td>{{ user.firstname }}</td>
+                <td>{{ user.lastname }}</td>
+                <td>{{ user.age }}</td>
+                <td>{{ user.status }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.telegram }}</td>
+                <td>{{ user.addres }}</td>
+
+                <td><a href="{{ path('change_user_form', {'id': user.id}) }}">edit</a> </td>
+
+                <td><form action="{{ path('delete_user', {'id': user.id }) }}" method="POST">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Удалить">
+                </form></td>
+            </tr>
+        {% else %}
+            <tr> <td colspan="7">Нет записей</td> </tr>
+        {% endfor %}
+        <tr> 
+            <td> <form action="{{ path('create_user') }}" method="GET">
+                <input type="submit" value="Создать">
+            </form> </td> 
+        </tr>
+        </tbody>
+    </table>
+
+
+{% endblock %}
