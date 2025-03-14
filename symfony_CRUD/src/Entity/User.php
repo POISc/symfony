@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -34,6 +36,15 @@ class User
 
     #[ORM\Column(length: 70)]
     private ?string $addres = null;
+
+    #[ORM\ManyToOne(inversedBy: 'foreignKey')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Department $department = null;
+
+    public function __construct()
+    {
+
+    }
 
     public function getId(): ?int
     {
@@ -120,6 +131,18 @@ class User
     public function setAddres(string $addres): static
     {
         $this->addres = $addres;
+
+        return $this;
+    }
+
+    public function getDepartment(): ?Department
+    {
+        return $this->department;
+    }
+
+    public function setDepartment(?Department $department): static
+    {
+        $this->department = $department;
 
         return $this;
     }

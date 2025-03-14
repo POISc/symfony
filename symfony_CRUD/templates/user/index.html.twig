@@ -6,7 +6,24 @@
 
     <form action="{{ path('app_user') }}" method="GET">
         <input placeholder="Поиск" name="soughtAfter">
-        <input type="submit" value="Найти">
+
+        <input type="submit" value="Найти / Сортировать"> <br>
+
+        <select name="sortType">
+            <option value="ASC" {% if app.request.get('sortType') == 'ASC' %}selected{% endif %}> По возрастанию </option>
+            <option value="DESC" {% if app.request.get('sortType') == 'DESC' %}selected{% endif %}> По убыванию </option>
+        </select>
+
+        <select name="sortable">
+            <option value="request.first_name" {% if app.request.get('sortable') == 'request.first_name' %}selected{% endif %}>Имя</option>
+            <option value="request.last_name" {% if app.request.get('sortable') == 'request.last_name' %}selected{% endif %}>Фамилия</option>
+            <option value="request.age" {% if app.request.get('sortable') == 'request.age' %}selected{% endif %}>Возраст</option>
+            <option value="request.status" {% if app.request.get('sortable') == 'request.status' %}selected{% endif %}>Статус</option>
+            <option value="request.email" {% if app.request.get('sortable') == 'request.email' %}selected{% endif %}>Почта</option>
+            <option value="request.addres" {% if app.request.get('sortable') == 'request.addres' %}selected{% endif %}>Адрес</option>
+            <option value="request.telegram" {% if app.request.get('sortable') == 'request.telegram' %}selected{% endif %}>Telegram</option>
+            <option value="department.name" {% if app.request.get('sortable') == 'department.name' %}selected{% endif %}>Отдел</option>
+        </select>
     </form>
 
     <br>
@@ -21,6 +38,7 @@
                 <th>Почта</th>
                 <th>Телеграмм</th>
                 <th>Адрес</th>
+                <th>Отдел</th>
             </tr>
         </thead>
         <tbody>
@@ -31,8 +49,24 @@
                 <td>{{ user.age }}</td>
                 <td>{{ user.status }}</td>
                 <td>{{ user.email }}</td>
-                <td>{{ user.telegram }}</td>
+
+                <td>
+                    {% if user.telegram is empty %}
+                        Телегамма нет
+                    {% else %}
+                        {{ user.telegram }}
+                    {% endif %}
+                </td>
+
                 <td>{{ user.addres }}</td>
+
+                <td>
+                    {% if user.department.name is empty %}
+                        Отдел не назначен
+                    {% else %}
+                        {{ user.department.name }}
+                    {% endif %}
+                </td>
 
                 <td><a href="{{ path('change_user_form', {'id': user.id}) }}">edit</a> </td>
 

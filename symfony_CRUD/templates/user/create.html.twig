@@ -11,7 +11,13 @@
     <input name="email" placeholder="Почта" required> <br>
     <input name="telegram" placeholder="@telegram"> <br>
     <input name="addres" placeholder="Адрес" required> <br>
+    
+    <select name="department">
+        {% for department in departments %}
+            <option value="{{ department.id }}"> {{ department.name }} </option>
+        {% endfor %}
+    </select> <br>
 
-    <input type="submit"value="Создать">
+    <input type="submit" value="Создать">
 </form>
 {% endblock %}

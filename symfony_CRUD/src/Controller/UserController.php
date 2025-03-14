@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\DepartmentRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,33 +30,36 @@ class UserController extends AbstractController
     {
         $data = $request->query->get('soughtAfter');
 
+        $qb = $this->userRepository->createQueryBuilder('request');
+
         if(isset($data) && $data != '')
         {
-            $qb = $this->userRepository->createQueryBuilder('request');
-            $qb->where($qb->expr()->like('request.first_name', ':search'))
-            ->orWhere($qb->expr()->like('request.last_name', ':search'))
-            ->orWhere($qb->expr()->like('request.email', ':search'))
-            ->orWhere($qb->expr()->like('request.telegram', ':search'))
+            $qb->leftJoin('request.department', 'department')
+            ->where('request.first_name LIKE :search')
+            ->orWhere('request.last_name LIKE :search')
+            ->orWhere('request.email LIKE :search')
+            ->orWhere('request.telegram LIKE :search')
+            ->orWhere('department.name LIKE :search')
             ->setParameter('search', '%' . $data . '%');
-
-            return $this->render('user/index.html.twig', ['users' => $qb->getQuery()->getResult()]);
-        } else
-        {
-            return $this->render('user/index.html.twig', [
-                'users' => $this->userRepository->findAll(),
-            ]);
         }
+
+        $sortable = $request->query->get('sortable');
+        $sortType = $request->query->get('sortType');
+
+        $qb->orderBy(isset($sortable)?$sortable:'request.first_name', isset($sortType)?$sortType:'ASC');
+
+        return $this->render('user/index.html.twig', ['users' => $qb->getQuery()->getResult()]);
     }
 
     #[Route(path:"/user/create", name: 'create_user', methods: ['GET'])]
-    public function formCreate(): Response
+    public function formCreate(DepartmentRepository $departmentRepository): Response
     {
         
-        return $this->render('user/create.html.twig');
+        return $this->render('user/create.html.twig', ['departments' => $departmentRepository->findAll()]);
     }
 
     #[Route(path:"/user/create", name: 'creating_user', methods: ['POST'])]
-    public function createNewUser(Request $request): Response
+    public function createNewUser(Request $request, DepartmentRepository $departmentRepository): Response
     {
 
         $user = new User();
@@ -66,6 +70,7 @@ class UserController extends AbstractController
         $user->setEmail($request->request->get('email'));
         $user->setTelegram($request->request->get('telegram'));
         $user->setAddres($request->request->get('addres'));
+        $user->setDepartment($departmentRepository->find($request->request->get('department')));
         
         $this->entityManager->persist($user);
         $this->entityManager->flush(); 
@@ -79,7 +84,7 @@ class UserController extends AbstractController
         return $this->render('user/change.html.twig', ['user' => $this->userRepository->find($id)]);
     }
 
-    #[Route(path:"/user/{id}/delete", name: 'changeing_user', methods: ['PUT'])]
+    #[Route(path:"/user/{id}", name: 'changeing_user', methods: ['PUT'])]
     public function update(int $id, Request $request): Response
     {
         $user = $this->userRepository->find($id);
@@ -91,6 +96,7 @@ class UserController extends AbstractController
         $user->setEmail($request->request->get('email'));
         $user->setTelegram($request->request->get('telegram'));
         $user->setAddres($request->request->get('addres'));
+        $user->setDepartment($request->request->get('departments'));
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -98,7 +104,7 @@ class UserController extends AbstractController
         return $this->redirect('http://localhost:8000/user');
     }
 
-    #[Route(path:"/user/{id}", name: 'delete_user', methods: ['DELETE'])]
+    #[Route(path:"/user/{id}/delete", name: 'delete_user', methods: ['DELETE'])]
     public function delete(int $id, Request $request): Response
     {
         $this->entityManager->remove($this->userRepository->find($id));
