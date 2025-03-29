@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserController extends AbstractController
 {
@@ -61,7 +62,7 @@ class UserController extends AbstractController
     }
 
     #[Route(path:"/user/create", name: 'creating_user', methods: ['POST'])]
-    public function createNewUser(Request $request, DepartmentRepository $departmentRepository, SluggerInterface $slugger): Response
+    public function createNewUser(Request $request, DepartmentRepository $departmentRepository, SluggerInterface $slugger, ValidatorInterface $validator): Response
     {
 
         $user = new User();
@@ -90,6 +91,12 @@ class UserController extends AbstractController
     
             $user->setAvatar("/uploads/avatars/" . $newFilename); 
         }
+
+        $errors = $validator->validate($user);
+        if(count($errors) > 0)
+        {
+            return $this->render('user/create.html.twig', ['departments' => $departmentRepository->findAll(), 'errors' => $errors]);
+        }
         
         $this->entityManager->persist($user);
         $this->entityManager->flush(); 
@@ -104,7 +111,7 @@ class UserController extends AbstractController
     }
 
     #[Route(path:"/user/{id}", name: 'changeing_user', methods: ['PUT'])]
-    public function update(int $id, Request $request, DepartmentRepository $departmentRepository, SluggerInterface $slugger): Response
+    public function update(int $id, Request $request, DepartmentRepository $departmentRepository, SluggerInterface $slugger, ValidatorInterface $validator): Response
     {
         $user = $this->userRepository->find($id);
 
@@ -133,6 +140,12 @@ class UserController extends AbstractController
             }
     
             $user->setAvatar("/uploads/avatars/" . $newFilename); 
+        }
+
+        $errors = $validator->validate($user);
+        if(count($errors) > 0)
+        {
+            return $this->render('user/change.html.twig', ['user' => $this->userRepository->find($id), 'departments' => $departmentRepository->findAll(), 'errors' => $errors]);
         }
 
         $this->entityManager->persist($user);

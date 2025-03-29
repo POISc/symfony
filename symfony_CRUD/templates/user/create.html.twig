@@ -18,8 +18,12 @@
         {% endfor %}
     </select> <br>
 
-    <input name="avatar" type="file" accept="image/*">
+    <input name="avatar" type="file" accept="image/*"> <br>
 
-    <input type="submit" value="Создать">
+    <input type="submit" value="Создать"> <br>
+
+    {% for error in errors|default([]) %}
+        {{error}} <br>
+    {% endfor %}
 </form>
 {% endblock %}

@@ -53,13 +53,13 @@ final class UserFactory extends PersistentProxyObjectFactory{
     {
         return [
             'addres' => self::faker()->address(),
-            'age' => self::faker()->randomNumber(),
+            'age' => self::faker()->numberBetween(18, 75),
             'department' => DepartmentFactory::new(),
             'email' => self::faker()->email(),
             'first_name' => self::faker()->name(),
             'last_name' => self::faker()->lastName(),
             'status' => self::faker()->jobTitle(),
-            'telegram' => self::faker()->userName(),
+            'telegram' => '@' . self::faker()->userName(),
         ];
     }
 

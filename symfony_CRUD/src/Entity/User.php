@@ -6,42 +6,67 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 class User
 {
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
     #[ORM\Column(length: 50, nullable: true)]
+    #[Assert\Length(max: 50)]
+    #[Assert\NotBlank(message: "Фамилия обязательна для заполнения")]
     private ?string $last_name = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: "Имя обязательно для заполнения")]
+    #[Assert\Length(min: 2, max: 50)]
     private ?string $first_name = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank]
+    #[Assert\Type(type: 'integer', message: 'Возраст должен быть числом')]
+    #[Assert\Positive]
+    #[Assert\Range(min: 18, max: 120)]
     private ?int $age = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank]
     private ?string $status = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank]
+    #[Assert\Email]
+    #[Assert\Length(max: 50)]
     private ?string $email = null;
 
     #[ORM\Column(length: 30, nullable: true)]
+    #[Assert\Length(max: 30)]
+    #[Assert\Regex(
+        pattern: '/^@[a-zA-Z0-9_]+$/',
+        message: 'Telegram должен начинаться с @ и содержать только буквы, цифры и подчёркивание'
+    )]
     private ?string $telegram = null;
 
     #[ORM\Column(length: 70)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 5, max: 70)]
     private ?string $addres = null;
 
-    #[ORM\ManyToOne(inversedBy: 'foreignKey')]
+    #[ORM\ManyToOne(targetEntity: Department::class, inversedBy: 'employees')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull]
     private ?Department $department = null;
 
     #[ORM\Column(length: 200, nullable: true)]
+    #[Assert\Length(max: 200)]
     private ?string $avatar = null;
 
     public function __construct()
