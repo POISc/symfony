@@ -86,7 +86,7 @@ class UserController extends AbstractController
             try {
                 $file->move($projectDir . "/public/uploads/avatars", $newFilename);
             } catch (FileException $e) {
-                // обработка ошибок
+                throw new FileException('Не удалось загрузить файл: '.$e->getMessage());
             }
     
             $user->setAvatar("/uploads/avatars/" . $newFilename); 
@@ -136,7 +136,12 @@ class UserController extends AbstractController
             try {
                 $file->move($projectDir . "/public/uploads/avatars", $newFilename);
             } catch (FileException $e) {
-                // обработка ошибок
+                throw new FileException('Не удалось загрузить файл: '.$e->getMessage());
+            }
+
+            if($user->getAvatar() != null && file_exists($this->getParameter('kernel.project_dir') . '/public/' . $user->getAvatar()))
+            {
+                unlink($this->getParameter('kernel.project_dir') . '/public/' . $user->getAvatar());
             }
     
             $user->setAvatar("/uploads/avatars/" . $newFilename); 
@@ -157,7 +162,12 @@ class UserController extends AbstractController
     #[Route(path:"/user/{id}/delete", name: 'delete_user', methods: ['DELETE'])]
     public function delete(int $id, Request $request): Response
     {
-        $this->entityManager->remove($this->userRepository->find($id));
+        $user = $this->userRepository->find($id);
+        if($user->getAvatar() != null && file_exists($this->getParameter('kernel.project_dir') . '/public/' . $user->getAvatar()))
+        {
+            unlink($this->getParameter('kernel.project_dir') . '/public/' . $user->getAvatar());
+        }
+        $this->entityManager->remove($user);
         $this->entityManager->flush();
 
         return $this->redirect('http://localhost:8000/user');
