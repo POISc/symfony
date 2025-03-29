@@ -11,8 +11,10 @@ use phpDocumentor\Reflection\DocBlock\Tags\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 class UserController extends AbstractController
 {
@@ -59,7 +61,7 @@ class UserController extends AbstractController
     }
 
     #[Route(path:"/user/create", name: 'creating_user', methods: ['POST'])]
-    public function createNewUser(Request $request, DepartmentRepository $departmentRepository): Response
+    public function createNewUser(Request $request, DepartmentRepository $departmentRepository, SluggerInterface $slugger): Response
     {
 
         $user = new User();
@@ -71,6 +73,23 @@ class UserController extends AbstractController
         $user->setTelegram($request->request->get('telegram'));
         $user->setAddres($request->request->get('addres'));
         $user->setDepartment($departmentRepository->find($request->request->get('department')));
+
+        $file = $request->files->get('avatar');
+        if ($file) 
+        {
+            $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeFilename = $slugger->slug($originalFilename);
+            $newFilename = $safeFilename.'-'.uniqid();
+        
+            $projectDir = $this->getParameter('kernel.project_dir');
+            try {
+                $file->move($projectDir . "/public/uploads/avatars", $newFilename);
+            } catch (FileException $e) {
+                // обработка ошибок
+            }
+    
+            $user->setAvatar("/uploads/avatars/" . $newFilename); 
+        }
         
         $this->entityManager->persist($user);
         $this->entityManager->flush(); 
@@ -79,13 +98,13 @@ class UserController extends AbstractController
     }
 
     #[Route(path:"/user/{id}", name: 'change_user_form', methods: ['GET'])]
-    public function updateForm( int $id): Response
+    public function updateForm( int $id, DepartmentRepository $departmentRepository): Response
     {
-        return $this->render('user/change.html.twig', ['user' => $this->userRepository->find($id)]);
+        return $this->render('user/change.html.twig', ['user' => $this->userRepository->find($id), 'departments' => $departmentRepository->findAll()]);
     }
 
     #[Route(path:"/user/{id}", name: 'changeing_user', methods: ['PUT'])]
-    public function update(int $id, Request $request): Response
+    public function update(int $id, Request $request, DepartmentRepository $departmentRepository, SluggerInterface $slugger): Response
     {
         $user = $this->userRepository->find($id);
 
@@ -96,7 +115,25 @@ class UserController extends AbstractController
         $user->setEmail($request->request->get('email'));
         $user->setTelegram($request->request->get('telegram'));
         $user->setAddres($request->request->get('addres'));
-        $user->setDepartment($request->request->get('departments'));
+        $user->setDepartment($departmentRepository->find($request->request->get('department')));
+
+        $file = $request->files->get('avatar');
+        if ($file) 
+        {
+            $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeFilename = $slugger->slug($originalFilename);
+            $newFilename = $safeFilename.'-'.uniqid();
+        
+            $projectDir = $this->getParameter('kernel.project_dir');
+            $uploadDir = $projectDir . '/public/uploads/avatars';
+            try {
+                $file->move($projectDir . "/public/uploads/avatars", $newFilename);
+            } catch (FileException $e) {
+                // обработка ошибок
+            }
+    
+            $user->setAvatar("/uploads/avatars/" . $newFilename); 
+        }
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();

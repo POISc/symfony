@@ -41,6 +41,9 @@ class User
     #[ORM\JoinColumn(nullable: false)]
     private ?Department $department = null;
 
+    #[ORM\Column(length: 200, nullable: true)]
+    private ?string $avatar = null;
+
     public function __construct()
     {
 
@@ -143,6 +146,18 @@ class User
     public function setDepartment(?Department $department): static
     {
         $this->department = $department;
+
+        return $this;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): static
+    {
+        $this->avatar = $avatar;
 
         return $this;
     }

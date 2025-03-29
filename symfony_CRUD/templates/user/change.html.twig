@@ -3,7 +3,7 @@
 {% block title %}Change user{% endblock %}
 
 {% block body %}
-<form action="{{ path('changeing_user', {'id': user.id}) }}" method="POST">
+<form action="{{ path('changeing_user', {'id': user.id}) }}" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="_method" value="PUT">
 
     <input name="first_name" placeholder="Имя" value="{{ user.firstname }}" required> <br>
@@ -13,6 +13,14 @@
     <input name="email" placeholder="Почта"value="{{ user.email }}" required> <br>
     <input name="telegram" placeholder="@telegram" value="{{ user.telegram }}"> <br>
     <input name="addres" placeholder="Адрес" value="{{ user.addres }}" required> <br>
+
+    <select name="department">
+        {% for department in departments %}
+            <option value="{{ department.id }}"> {{ department.name }} </option>
+        {% endfor %}
+    </select> <br>
+
+    <input name="avatar" type="file" accept="image/*">
 
     <input type="submit" value="Сохронить">
 </form>
